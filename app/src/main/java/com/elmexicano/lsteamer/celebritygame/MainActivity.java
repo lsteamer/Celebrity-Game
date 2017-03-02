@@ -12,17 +12,12 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-    String[] countriesDataNames;
-    String[] countriesDataURL;
 
 
     //Inner class that retrieves the source code.
@@ -79,45 +74,37 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-    protected void urlCleaner(String page){
+    //Method that receives a sourcecode and a Pattern to look for, and returns a String Array with the occurrences
+    protected String[] urlCleaner(String page,String pattern){
 
         int counter=0;
-        Pattern p = Pattern.compile("<img alt=\"(.*?)\"");
-        Pattern q = Pattern.compile("/mini/(.*?)\"");
 
+        //Receive the pattern
+        Pattern p = Pattern.compile(pattern);
+        //And match it with the code provided
         Matcher m = p.matcher(page);
 
-        String swat="";
-        String swaat="";
+        //count how many instances there are of the pattern
+        while(m.find())
+            counter++;
 
+        //Create an array String to return
+        String[] dataArr = new String[counter];
 
+        //Reset the matcher on first position
+        m = p.matcher(page);
+
+        //Add the matches into the Array
+        counter=0;
         while (m.find()){
 
-            swat = m.group(1);
-            Log.i("RESULT",swat);
-
-
+            dataArr[counter] = m.group(1);
+            counter++;
         }
-
-
-        m = q.matcher(page);
-        while (m.find()){
-
-            swaat = "http://flags.fmcdn.net/data/flags/normal/"+m.group(1);
-
-            Log.i("RESULT",swaat);
-        }
-
-        //Pattern
-        //p = Pattern.compile("\"(.*?)\"");
-
-
-
-        //Log.i("GRUPO 1", swat);
-       // Log.i("GRUPO 2", swaat);
-
+        //Return the Array
+        return dataArr;
     }
+
 
 
 
@@ -125,15 +112,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         //String that catches the result
         String result="";
 
-        countriesDataNames = new String[199];
-        countriesDataURL = new String[199];
-
-
         //AsyncTask Class
         DownloadTask task = new DownloadTask();
+
 
         //Call the Class that will download the source code
         try {
@@ -146,8 +131,23 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+        //Arrays to hold the Name of the countries and the code for the URL Image File
+        String[] countriesDataNames=null;
+        String[] countriesDataURL=null;
+
+        /*
+            REMEMBER!!!!
+            To add:
+            http://flags.fmcdn.net/data/flags/normal/      +    countriesDataURL[counter]
+
+         */
+
         //Calling the method that 'cleans' the results
-        urlCleaner(result);
+        countriesDataNames = urlCleaner(result,"<img alt=\"Flag of (.*?)\"");
+        countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
+
+
+
 
 
     }
