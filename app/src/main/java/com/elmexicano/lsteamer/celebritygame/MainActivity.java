@@ -5,6 +5,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -12,11 +13,17 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
+
+    String[] countriesDataNames;
+    String[] countriesDataURL;
+
 
     //Inner class that retrieves the source code.
     protected class DownloadTask extends AsyncTask<String, Void, String>{
@@ -24,25 +31,39 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             //String in which the url source code will be stored
-            String resulte = null;
+            String resulte = "";
+
+
             try {
+                //Read the URL
                 URL url = new URL(strings[0]);
 
-                HttpURLConnection urlCon = (HttpURLConnection) url.openConnection();
+                //The pattern we're looking for
+                Pattern p = Pattern.compile("td class=\"td-flag(.*?)/></a></td>");
 
+                //Accessing the URL
+                HttpURLConnection urlCon = (HttpURLConnection) url.openConnection();
                 InputStream in = urlCon.getInputStream();
 
-                InputStreamReader reader = new InputStreamReader(in);
+                //Everything in a reader
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+                StringBuilder str = new StringBuilder();
+                String line;
 
-                int data = reader.read();
+                //While there are things to read
+                while((line = reader.readLine() ) != null){
 
-                while(data!= -1){
-                    char current = (char) data;
-                    resulte += current;
-                    data = reader.read();
+                    //If you find a match
+                    Matcher m = p.matcher(line);
+                    if(m.find()){
 
+                        resulte = resulte+ "****"+m.group(1);
+                    }
                 }
 
+                in.close();
+
+                //Returns the full source code of the url provided
                 return resulte;
 
             } catch (MalformedURLException e) {
@@ -57,20 +78,44 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+
     protected void urlCleaner(String page){
-        Pattern p = Pattern.compile("<img src=(.*?)/>");
+
+        int counter=0;
+        Pattern p = Pattern.compile("<img alt=\"(.*?)\"");
+        Pattern q = Pattern.compile("/mini/(.*?)\"");
 
         Matcher m = p.matcher(page);
 
-        ArrayList<String> some = new ArrayList<String>();
+        String swat="";
+        String swaat="";
+
 
         while (m.find()){
-            some.add(m.group(1));
+
+            swat = m.group(1);
+            Log.i("RESULT",swat);
+
+
         }
 
-        String swat = some.get(1);
 
-        Log.i("THE RESULT - ",swat);
+        m = q.matcher(page);
+        while (m.find()){
+
+            swaat = "http://flags.fmcdn.net/data/flags/normal/"+m.group(1);
+
+            Log.i("RESULT",swaat);
+        }
+
+        //Pattern
+        //p = Pattern.compile("\"(.*?)\"");
+
+
+
+        //Log.i("GRUPO 1", swat);
+       // Log.i("GRUPO 2", swaat);
 
     }
 
@@ -82,18 +127,24 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //String that catches the result
         String result="";
-        //Async Task
+
+        countriesDataNames = new String[199];
+        countriesDataURL = new String[199];
+
+
+        //AsyncTask Class
         DownloadTask task = new DownloadTask();
 
-
+        //Call the Class that will download the source code
         try {
-            result = task.execute("http://www.posh24.com/celebrities").get();
+            result = task.execute("http://flagpedia.net/index").get();
 
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+
 
         //Calling the method that 'cleans' the results
         urlCleaner(result);
