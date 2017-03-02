@@ -1,9 +1,11 @@
 package com.elmexicano.lsteamer.celebritygame;
 
 import android.os.AsyncTask;
+import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -13,12 +15,15 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
+    CountDownTimer appRuns;
 
+    private int sec;
 
     //Inner class that retrieves the source code.
     protected class DownloadTask extends AsyncTask<String, Void, String>{
@@ -104,6 +109,49 @@ public class MainActivity extends AppCompatActivity {
         //Return the Array
         return dataArr;
     }
+
+
+    protected void appRun(){
+
+        //CHANGE THIS SOMEWHERE LATER.
+        sec = 60;
+
+        //Timer (time for the app) set
+        appRuns = new CountDownTimer(sec*1000,1000) {
+
+            //Changing data ever 'tic' (every second)
+            @Override
+            public void onTick(long l) {
+
+                //Updating the screen timer
+                /*
+                timerT is a TextView from the previous app
+                timert.setText(""+String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(sec*1000),
+                        TimeUnit.MILLISECONDS.toSeconds(sec*1000) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(sec*1000))));
+
+                */
+                //decreasing the screen timer
+                sec--;
+
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+
+        appRuns.start();
+
+    }
+
+    protected void countryFlag(View view){
+        
+    }
+
+
 
 
 
