@@ -1,11 +1,15 @@
 package com.elmexicano.lsteamer.celebritygame;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
-import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,16 +18,108 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-    CountDownTimer appRuns;
 
+    private boolean started;
+    private  int counter, score, winner, country;
+    private Button[] selectors;
+    private TextView resultTV, scoreTV;
+    private ImageView bandera;
+
+
+
+    DownloadImage locTask;
+
+    //Random number Class
+    Random randNum;
+
+    String[] countriesDataNames;
+    String[] countriesDataURL;
+
+    /*
+     * Considering NOT using a timer.
+     * Functionality is in place in case I do.
+    CountDownTimer appRuns;
     private int sec;
+    protected void appRun(){
+
+        //CHANGE THIS SOMEWHERE LATER.
+        sec = 60;
+
+        //Timer (time for the app) set
+        appRuns = new CountDownTimer(sec*1000,1000) {
+
+            //Changing data ever 'tic' (every second)
+            @Override
+            public void onTick(long l) {
+
+                //Updating the screen timer
+
+                timerT is a TextView from the previous app
+                timert.setText(""+String.format("%02d:%02d",
+                        TimeUnit.MILLISECONDS.toMinutes(sec*1000),
+                        TimeUnit.MILLISECONDS.toSeconds(sec*1000) -
+                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(sec*1000))));
+
+
+                //decreasing the screen timer
+                sec--;
+
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        };
+
+        appRuns.start();
+
+    }
+
+    */
+
+    public class DownloadImage extends AsyncTask<String, Void, Bitmap>{
+
+        @Override
+        protected Bitmap doInBackground(String... params) {
+
+            Bitmap result = null;
+
+            try{
+                URL url = new URL(params[0]);
+
+                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+
+                urlConnection.connect();
+
+                InputStream inputStream = urlConnection.getInputStream();
+
+                result = BitmapFactory.decodeStream(inputStream);
+
+                return result;
+
+            }
+            catch (MalformedURLException e){
+                e.printStackTrace();
+                return null;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+
+
+        }
+
+
+    }
+
 
     //Inner class that retrieves the source code.
     protected class DownloadTask extends AsyncTask<String, Void, String>{
@@ -111,46 +207,57 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    protected void appRun(){
 
-        //CHANGE THIS SOMEWHERE LATER.
-        sec = 60;
-
-        //Timer (time for the app) set
-        appRuns = new CountDownTimer(sec*1000,1000) {
-
-            //Changing data ever 'tic' (every second)
-            @Override
-            public void onTick(long l) {
-
-                //Updating the screen timer
-                /*
-                timerT is a TextView from the previous app
-                timert.setText(""+String.format("%02d:%02d",
-                        TimeUnit.MILLISECONDS.toMinutes(sec*1000),
-                        TimeUnit.MILLISECONDS.toSeconds(sec*1000) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(sec*1000))));
-
-                */
-                //decreasing the screen timer
-                sec--;
-
-            }
-
-            @Override
-            public void onFinish() {
-
-            }
-        };
-
-        appRuns.start();
-
-    }
 
     protected void countryFlag(View view){
-        
+        int res;
+        if(started) {
+            res = (Integer) view.getTag();
+            if(res==1) {
+                score++;
+            }
+            counter++;
+            resultTV.setText(score + " / " + counter);
+        }
+        else if(started==false){
+            started = true;
+            for(int i = 0; i<4; i++)
+                selectors[i].animate().alpha(1).start();
+        }
+
+
+        newScreen();
+
     }
 
+    protected void newScreen(){
+
+
+        //Select one of the numbers to be the winner
+        winner = (randNum.nextInt(4));
+
+        locTask = new DownloadImage();
+        Bitmap image=null;
+        for(int i=0; i<4; i++){
+            int ran = (randNum.nextInt(199));
+            selectors[i].setText(countriesDataNames[ran]);
+            selectors[i].setTag(0);
+            if(i==winner){
+                try {
+                    image = locTask.execute(countriesDataURL[ran]).get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+
+                bandera.setImageBitmap(image);
+            }
+        }
+        selectors[winner].setTag(1);
+
+
+    }
 
 
 
@@ -167,6 +274,10 @@ public class MainActivity extends AppCompatActivity {
         //AsyncTask Class
         DownloadTask task = new DownloadTask();
 
+        //Random number toolkit defined
+        randNum = new Random();
+
+
 
         //Call the Class that will download the source code
         try {
@@ -179,24 +290,37 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        //Arrays to hold the Name of the countries and the code for the URL Image File
-        String[] countriesDataNames=null;
-        String[] countriesDataURL=null;
-
-        /*
-            REMEMBER!!!!
-            To add:
-            http://flags.fmcdn.net/data/flags/normal/      +    countriesDataURL[counter]
-
-         */
-
+        //Below are variables that will be saved every time the screen rotates
         //Calling the method that 'cleans' the results
         countriesDataNames = urlCleaner(result,"<img alt=\"Flag of (.*?)\"");
         countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
 
+        for(int i=0; i<countriesDataURL.length; i++ )
+            countriesDataURL[i] = "http://flags.fmcdn.net/data/flags/normal/" + countriesDataURL[i];
 
 
 
+        //Has the app started?
+        started = false;
+
+        //Overall counter
+        counter=score=0;
+
+
+        //Buttons
+        selectors = new Button[4];
+        selectors[0] = (Button)  findViewById(R.id.button1);
+        selectors[1] = (Button)  findViewById(R.id.button2);
+        selectors[2] = (Button)  findViewById(R.id.button3);
+        selectors[3] = (Button)  findViewById(R.id.button4);
+
+        //TextViews
+        resultTV = (TextView) findViewById(R.id.result);
+        scoreTV = (TextView) findViewById(R.id.score);
+        resultTV.setText("");
+        scoreTV.setText("");
+
+        bandera = (ImageView) findViewById(R.id.flagImage);
 
     }
 }
