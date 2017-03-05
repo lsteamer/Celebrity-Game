@@ -258,6 +258,13 @@ public class MainActivity extends AppCompatActivity {
         //Select the 4 options
         for(int i=0; i<4; i++) {
             currentOpt[i] = (randNum.nextInt(199));
+            for(int j= i-1; j>=0;j--){
+                while(currentOpt[i]==currentOpt[j]){
+                    currentOpt[i] = (randNum.nextInt(199));
+                    j=i-1;
+                }
+
+            }
         }
         //Select one of the numbers to be the winner
         winner = (randNum.nextInt(4));
@@ -283,6 +290,14 @@ public class MainActivity extends AppCompatActivity {
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
+
+                int width = image.getWidth();
+                int height = image.getHeight();
+
+                Log.i("Width! WATWAT -", ""+width);
+                Log.i("Width! WATWAT -", ""+height);
+
+
                 image = Bitmap.createScaledBitmap(image, 810, 450, true);
 
                 bandera.setImageBitmap(image);
@@ -375,22 +390,15 @@ public class MainActivity extends AppCompatActivity {
 
                 if(prevWin!=2000){
 
-                    if(res==1) {
+                    if(res==1)
                         scoreTV.setText("Correct! That was "+ countriesDataNames[prevWin]);
-                    }
-                    else{
+                    else
                         scoreTV.setText("Wrong. That was "+ countriesDataNames[prevWin]);
-                    }
 
                     resultTV.setText(score + " / " + counter);
 
                 }
-
-
                 newScreen();
-            }
-            else{
-
             }
 
 
