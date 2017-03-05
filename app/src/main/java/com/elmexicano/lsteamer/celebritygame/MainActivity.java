@@ -1,5 +1,6 @@
 package com.elmexicano.lsteamer.celebritygame;
 
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -18,6 +19,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
@@ -27,10 +29,14 @@ public class MainActivity extends AppCompatActivity {
 
 
     private boolean started;
-    private  int counter, score, winner, country;
+    private  int counter, score, winner, prevWin, res;
     private Button[] selectors;
     private TextView resultTV, scoreTV;
     private ImageView bandera;
+
+    private int[] currentOpt;
+
+    //ArrayList<Integer> previousFlags;
 
 
 
@@ -84,13 +90,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     */
-
+    //Inner class that given a URL, Downloads an image
     public class DownloadImage extends AsyncTask<String, Void, Bitmap>{
 
         @Override
         protected Bitmap doInBackground(String... params) {
 
-            Bitmap result = null;
+            Bitmap result;
 
             try{
                 URL url = new URL(params[0]);
@@ -210,63 +216,104 @@ public class MainActivity extends AppCompatActivity {
 
 
     protected void countryFlag(View view){
-        int res;
-        if(started) {
+        //In case we have the Intro Screen, make the rest of the buttons appear and give a choice
+        if(score==-1){
+            //It has started
+            started = true;
+            //Animate the buttons
+            for(int i = 0; i<4; i++)
+                selectors[i].animate().alpha(1).start();
+            //Score and counter are no longer -1
+            score++;
+            counter++;
+
+            //'flag' for when you rotate the screen
+            prevWin = 2000;
+        }
+        //If the intro screen is no longer there
+        else {
             res = (Integer) view.getTag();
             if(res==1) {
                 score++;
+                scoreTV.setText("Correct! That was "+ countriesDataNames[currentOpt[winner]]);
+            }
+            else{
+                scoreTV.setText("Wrong. That was "+ countriesDataNames[currentOpt[winner]]);
             }
             counter++;
             resultTV.setText(score + " / " + counter);
-        }
-        else if(started==false){
-            started = true;
-            for(int i = 0; i<4; i++)
-                selectors[i].animate().alpha(1).start();
+            prevWin = currentOpt[winner];
+
         }
 
+        //Select the 4 options
+        for(int i=0; i<4; i++) {
+            currentOpt[i] = (randNum.nextInt(199));
+        }
+        //Select one of the numbers to be the winner
+        winner = (randNum.nextInt(4));
 
         newScreen();
 
     }
 
+    //New screen created based on determined values
     protected void newScreen(){
-
-
-        //Select one of the numbers to be the winner
-        winner = (randNum.nextInt(4));
 
         locTask = new DownloadImage();
         Bitmap image=null;
         for(int i=0; i<4; i++){
-            int ran = (randNum.nextInt(199));
-            selectors[i].setText(countriesDataNames[ran]);
+
+            selectors[i].setText(countriesDataNames[currentOpt[i]]);
             selectors[i].setTag(0);
             if(i==winner){
                 try {
-                    image = locTask.execute(countriesDataURL[ran]).get();
+                    image = locTask.execute(countriesDataURL[currentOpt[i]]).get();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
+                image = Bitmap.createScaledBitmap(image, 810, 450, true);
 
                 bandera.setImageBitmap(image);
             }
         }
         selectors[winner].setTag(1);
 
-
     }
 
 
+    @Override
+    public void onSaveInstanceState(Bundle bundle){
+        super.onSaveInstanceState(bundle);
+        //bundle.putIntegerArrayList("Previous",previousFlags);
+        bundle.putInt("Winner",winner);
+        bundle.putInt("Previous Winner", prevWin);
+        bundle.putIntArray("Current Options",currentOpt);
+        bundle.putInt("Score",score);
+        bundle.putInt("Total",counter);
+        bundle.putInt("Choice",res);
+        bundle.putStringArray("Countries list URL", countriesDataURL);
+        bundle.putStringArray("Countries list Names", countriesDataNames);
+        bundle.putBoolean("Started",started);
 
-
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+
+        res=0;
+
+        //If the screen is rotated, choose a different layout
+        if(Configuration.ORIENTATION_PORTRAIT==this.getResources().getConfiguration().orientation)
+            setContentView(R.layout.activity_main);
+        else
+            setContentView(R.layout.activity_main_lc);
+
+
+
 
         //String that catches the result
         String result="";
@@ -277,35 +324,8 @@ public class MainActivity extends AppCompatActivity {
         //Random number toolkit defined
         randNum = new Random();
 
-
-
-        //Call the Class that will download the source code
-        try {
-            result = task.execute("http://flagpedia.net/index").get();
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-
-        //Below are variables that will be saved every time the screen rotates
-        //Calling the method that 'cleans' the results
-        countriesDataNames = urlCleaner(result,"<img alt=\"Flag of (.*?)\"");
-        countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
-
-        for(int i=0; i<countriesDataURL.length; i++ )
-            countriesDataURL[i] = "http://flags.fmcdn.net/data/flags/normal/" + countriesDataURL[i];
-
-
-
         //Has the app started?
-        started = false;
-
-        //Overall counter
-        counter=score=0;
-
+        started=false;
 
         //Buttons
         selectors = new Button[4];
@@ -314,13 +334,91 @@ public class MainActivity extends AppCompatActivity {
         selectors[2] = (Button)  findViewById(R.id.button3);
         selectors[3] = (Button)  findViewById(R.id.button4);
 
+
         //TextViews
         resultTV = (TextView) findViewById(R.id.result);
         scoreTV = (TextView) findViewById(R.id.score);
         resultTV.setText("");
         scoreTV.setText("");
 
+        //ImageView of the flag displayed
         bandera = (ImageView) findViewById(R.id.flagImage);
+
+        if(savedInstanceState!=null){
+            started = (boolean) savedInstanceState.get("Started");
+
+            winner = (Integer) savedInstanceState.get("Winner");
+            prevWin = (Integer) savedInstanceState.get("Previous Winner");
+            counter = (Integer) savedInstanceState.get("Total");
+            score = (Integer) savedInstanceState.get("Score");
+
+            res = (Integer) savedInstanceState.get("Choice");
+
+            currentOpt = (int[]) savedInstanceState.get("Current Options");
+
+            countriesDataURL = (String[]) savedInstanceState.get("Countries list URL");
+            countriesDataNames = (String[]) savedInstanceState.get("Countries list Names");
+
+            if(started){
+
+                for(int i = 0; i<4; i++)
+                    selectors[i].animate().alpha(1).start();
+
+                if(prevWin!=2000){
+
+                    if(res==1) {
+                        scoreTV.setText("Correct! That was "+ countriesDataNames[prevWin]);
+                    }
+                    else{
+                        scoreTV.setText("Wrong. That was "+ countriesDataNames[prevWin]);
+                    }
+
+                    resultTV.setText(score + " / " + counter);
+
+                }
+
+
+                newScreen();
+            }
+            else{
+
+            }
+
+
+        }
+        else{
+            //Call the Class that will download the source code
+            try {
+                result = task.execute("http://flagpedia.net/index").get();
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            //Calling the method that 'cleans' the results
+            countriesDataNames = urlCleaner(result,"<img alt=\"Flag of (.*?)\"");
+            countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
+
+            //Adding the full URL to the Images
+            for(int i=0; i<countriesDataURL.length; i++ )
+                countriesDataURL[i] = "http://flags.fmcdn.net/data/flags/normal/" + countriesDataURL[i];
+
+            //Overall counter
+            counter = -1;
+            score = counter;
+
+
+
+            //Saved instances of the 4 options shown
+            currentOpt = new int[4];
+
+        }
+
+
+
+        //previousFlags = new ArrayList<Integer>();
 
     }
 }
