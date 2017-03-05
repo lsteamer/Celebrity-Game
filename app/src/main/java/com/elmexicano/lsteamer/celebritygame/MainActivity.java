@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.method.LinkMovementMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -233,12 +235,19 @@ public class MainActivity extends AppCompatActivity {
         //If the intro screen is no longer there
         else {
             res = (Integer) view.getTag();
+            String dynamicURL = "https://en.wikipedia.org/wiki/" + countriesDataNames[currentOpt[winner]];
+            String linkedText;
             if(res==1) {
                 score++;
-                scoreTV.setText("Correct! That was "+ countriesDataNames[currentOpt[winner]]);
+                linkedText =  "Correct! That was "+ String.format("<a href=\"%s\">" + countriesDataNames[currentOpt[winner]]+ "</a> ", dynamicURL);
+                scoreTV.setText(Html.fromHtml(linkedText));
+                scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
             }
             else{
-                scoreTV.setText("Wrong. That was "+ countriesDataNames[currentOpt[winner]]);
+
+                linkedText =  "Wrong! That was "+ String.format("<a href=\"%s\">" + countriesDataNames[currentOpt[winner]]+ "</a> ", dynamicURL);
+                scoreTV.setText(Html.fromHtml(linkedText));
+                scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
             }
             counter++;
             resultTV.setText(score + " / " + counter);
