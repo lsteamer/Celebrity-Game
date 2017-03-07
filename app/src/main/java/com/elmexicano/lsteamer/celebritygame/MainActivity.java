@@ -190,6 +190,8 @@ public class MainActivity extends AppCompatActivity {
     //The logic of the game is in this method
     protected void countryFlag(View view){
 
+        //PREPPING THE SCREEN/LOGIC OF THE GAME
+
         //Game started but no option has been selected, make the rest of the buttons appear and give a choice
         if(score==-1){
             //It has started
@@ -237,6 +239,9 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+
+        //NEW SET OF DATA
+
         //Select one of the numbers to be the winner
         winner = (randNum.nextInt(4));
         currentRun = usedFlags;
@@ -251,6 +256,18 @@ public class MainActivity extends AppCompatActivity {
         //Add the winner to the 'banned for this run' list
         currentRun.add(currentOpt[winner]);
 
+
+        //Download the image process
+        locTask = new DownloadImage();
+        Bitmap image=null;
+
+        try {
+            image = locTask.execute(countriesDataURL[currentOpt[winner]]).get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
 
         //Selects the 4 options
@@ -267,47 +284,34 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //Call the new method to fill the screen
-        newScreen();
-        /*
-         * Now this is problematic
-         * Calling the new Screen does the trick, but also the called method uses AsyncTask
-         * It should be this method doing so. Thinking of ways around that atm.
-         */
+        newScreen(image);
+
 
     }
 
-    //New screen created based on pre-determined values
-    protected void newScreen(){
+    //Method that creates the screen.
+    protected void newScreen(Bitmap image){
 
         locTask = new DownloadImage();
-        Bitmap image=null;
         for(int i=0; i<4; i++){
 
             selectors[i].setText(countriesDataNames[currentOpt[i]]);
             selectors[i].setTag(0);
-            if(i==winner){
-                try {
-                    image = locTask.execute(countriesDataURL[currentOpt[i]]).get();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
-                    e.printStackTrace();
-                }
 
-
-                image = Bitmap.createScaledBitmap(image, 810, 450, true);
-
-                bandera.setImageBitmap(image);
-            }
         }
+        image = Bitmap.createScaledBitmap(image, 810, 450, true);
+
+        bandera.setImageBitmap(image);
         selectors[winner].setTag(1);
 
     }
 
 
+
     @Override
     public void onSaveInstanceState(Bundle bundle){
         super.onSaveInstanceState(bundle);
+        
         //Variables that help build the app
         bundle.putInt("Winner",winner);
         bundle.putInt("Previous Winner", prevWin);
@@ -412,8 +416,23 @@ public class MainActivity extends AppCompatActivity {
 
                 }
 
+
+                //Download the image process
+                locTask = new DownloadImage();
+                Bitmap image=null;
+
+                try {
+                    image = locTask.execute(countriesDataURL[currentOpt[winner]]).get();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+
+
+
                 //Fill the screen
-                newScreen();
+                newScreen(image);
             }
 
 
