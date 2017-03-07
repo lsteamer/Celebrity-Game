@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView resultTV, scoreTV;
     private ImageView bandera;
 
+    private String linkedText;
+
     private int[] currentOpt;
 
     private ArrayList<Integer> usedFlags;
@@ -51,48 +53,6 @@ public class MainActivity extends AppCompatActivity {
     String[] countriesDataNames;
     String[] countriesDataURL;
 
-    /*
-     * Considering NOT using a timer.
-     * Functionality is in place in case I do.
-    CountDownTimer appRuns;
-    private int sec;
-    protected void appRun(){
-
-        //CHANGE THIS SOMEWHERE LATER.
-        sec = 60;
-
-        //Timer (time for the app) set
-        appRuns = new CountDownTimer(sec*1000,1000) {
-
-            //Changing data ever 'tic' (every second)
-            @Override
-            public void onTick(long l) {
-
-                //Updating the screen timer
-
-                timerT is a TextView from the previous app
-                timert.setText(""+String.format("%02d:%02d",
-                        TimeUnit.MILLISECONDS.toMinutes(sec*1000),
-                        TimeUnit.MILLISECONDS.toSeconds(sec*1000) -
-                                TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(sec*1000))));
-
-
-                //decreasing the screen timer
-                sec--;
-
-            }
-
-            @Override
-            public void onFinish() {
-
-            }
-        };
-
-        appRuns.start();
-
-    }
-
-    */
     //Inner class that given a URL, Downloads an image
     public class DownloadImage extends AsyncTask<String, Void, Bitmap>{
 
@@ -242,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
 
             //Give a clickable link to wikipedia of the previous country
             String dynamicURL = "https://en.wikipedia.org/wiki/" + countriesDataNames[currentOpt[winner]];
-            String linkedText;
+
             //If the previous answer was right
             if(res==1) {
                 score++;
@@ -272,26 +232,19 @@ public class MainActivity extends AppCompatActivity {
         winner = (randNum.nextInt(4));
         currentRun = usedFlags;
 
-        /*
-        * Below we should add the nonusedFlags variable
-        * to see if the winner is there
-        * if it is, we need to code it so a new random number is selected
-        * ALSO, we should return to the intro Screen once all the countries have been guessed correctly
-        *
-        * */
 
-
-
+        //If the winner exists before, select again
         currentOpt[winner] = (randNum.nextInt(199));
         while (currentRun.contains(currentOpt[winner])) {
             currentOpt[winner] = (randNum.nextInt(199));
         }
 
+        //Add the winner to the 'banned for this run' list
         currentRun.add(currentOpt[winner]);
 
 
 
-        //Select the 4 options
+        //Selects the 4 options
         for(int i=0; i<4; i++) {
             if(winner!=i) {
                 currentOpt[i] = (randNum.nextInt(199));
@@ -301,25 +254,16 @@ public class MainActivity extends AppCompatActivity {
 
                 currentRun.add(currentOpt[i]);
 
-
-                /*
-                currentOpt[i] = (randNum.nextInt(199));
-                while(currentOpt[i]==currentOpt[winner]);
-                    currentOpt[i] = (randNum.nextInt(199));
-
-                for(int j= i-1; j>=0;j--){
-                    while(currentOpt[i]==currentOpt[winner]||currentOpt[i]==currentOpt[j]){
-                        currentOpt[i] = (randNum.nextInt(199));
-                        j=i-1;
-                    }
-
-                }
-
-                */
             }
         }
 
+        //Call the new method to fill the screen
         newScreen();
+        /*
+         * Now this is problematic
+         * Calling the new Screen does the trick, but also the called method uses AsyncTask
+         * It should be this method doing so. Thinking of ways around that atm.
+         */
 
     }
 
@@ -367,6 +311,7 @@ public class MainActivity extends AppCompatActivity {
         bundle.putBoolean("Started",started);
         bundle.putIntegerArrayList("Used Flags",usedFlags);
         bundle.putIntegerArrayList("Current Run",currentRun);
+        bundle.putString("Linked Text",linkedText);
 
     }
 
@@ -387,8 +332,11 @@ public class MainActivity extends AppCompatActivity {
         usedFlags = new ArrayList<Integer>();
         currentRun = new ArrayList<Integer>();
 
+        //Text to create a clickable link
+        linkedText= "";
+
         //String that catches the result
-        String result="";
+        String  result="";
 
         //AsyncTask Class
         DownloadTask task = new DownloadTask();
@@ -428,6 +376,7 @@ public class MainActivity extends AppCompatActivity {
 
             currentRun = (ArrayList<Integer>) savedInstanceState.get("Current Run");
 
+            linkedText = (String) savedInstanceState.get("Linked Text");
 
             usedFlags = (ArrayList<Integer>) savedInstanceState.get("Used Flags");
 
@@ -444,11 +393,17 @@ public class MainActivity extends AppCompatActivity {
                 //If the user has a previous Right or wrong
                 if(prevWin!=2000){
 
-                    if(res==1)
-                        scoreTV.setText("Correct! That was "+ countriesDataNames[prevWin]);
-                    else
-                        scoreTV.setText("Wrong. That was "+ countriesDataNames[prevWin]);
 
+                    //Set the Wikipedia clickable link
+                    if(res==1){
+                        scoreTV.setText(Html.fromHtml(linkedText));
+                        scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
+                    }
+                    else{
+                        scoreTV.setText(Html.fromHtml(linkedText));
+                        scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
+                    }
+                    
                     resultTV.setText(score + " / " + counter);
 
                 }
