@@ -197,8 +197,11 @@ public class MainActivity extends AppCompatActivity {
             //It has started
             started = true;
             //Animate the buttons
-            for(int i = 0; i<4; i++)
+            for(int i = 0; i<4; i++){
                 selectors[i].animate().alpha(1).start();
+                selectors[i].setClickable(true);
+
+            }
             //Score and counter are no longer -1
             score++;
             counter++;
@@ -311,7 +314,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle bundle){
         super.onSaveInstanceState(bundle);
-        
+
         //Variables that help build the app
         bundle.putInt("Winner",winner);
         bundle.putInt("Previous Winner", prevWin);
@@ -363,9 +366,12 @@ public class MainActivity extends AppCompatActivity {
         //Buttons
         selectors = new Button[4];
         selectors[0] = (Button)  findViewById(R.id.button1);
+        selectors[0].setClickable(false);
         selectors[1] = (Button)  findViewById(R.id.button2);
         selectors[2] = (Button)  findViewById(R.id.button3);
+        selectors[2].setClickable(false);
         selectors[3] = (Button)  findViewById(R.id.button4);
+        selectors[3].setClickable(false);
 
 
         //TextViews
