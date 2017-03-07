@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
     private int[] currentOpt;
 
-    //ArrayList<Integer> previousFlags;
+    private ArrayList<Integer> usedFlags;
+    private ArrayList<Integer> currentRun;
 
 
 
@@ -216,9 +217,11 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
+    //Method that's called whenever the user presses a button
+    //The logic of the game is in this method
     protected void countryFlag(View view){
-        //In case we have the Intro Screen, make the rest of the buttons appear and give a choice
+
+        //Game started but no option has been selected, make the rest of the buttons appear and give a choice
         if(score==-1){
             //It has started
             started = true;
@@ -229,51 +232,98 @@ public class MainActivity extends AppCompatActivity {
             score++;
             counter++;
 
-            //'flag' for when you rotate the screen
+            //'flag' for when you rotate the screen to know that the game has started, yet no option has been selected yet
             prevWin = 2000;
         }
-        //If the intro screen is no longer there
+        //Game started and options have been selected
         else {
+            //See the tag of the Country the user has selected
             res = (Integer) view.getTag();
+
+            //Give a clickable link to wikipedia of the previous country
             String dynamicURL = "https://en.wikipedia.org/wiki/" + countriesDataNames[currentOpt[winner]];
             String linkedText;
+            //If the previous answer was right
             if(res==1) {
                 score++;
                 linkedText =  "Correct! That was "+ String.format("<a href=\"%s\">" + countriesDataNames[currentOpt[winner]]+ "</a> ", dynamicURL);
                 scoreTV.setText(Html.fromHtml(linkedText));
                 scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
+                usedFlags.add(currentOpt[winner]);
             }
+            //If the previous answer was wrong
             else{
 
                 linkedText =  "Wrong! That was "+ String.format("<a href=\"%s\">" + countriesDataNames[currentOpt[winner]]+ "</a> ", dynamicURL);
                 scoreTV.setText(Html.fromHtml(linkedText));
                 scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
             }
+
+            //Update the counter
             counter++;
             resultTV.setText(score + " / " + counter);
+
+            //let the variable know who was the previous winner
             prevWin = currentOpt[winner];
 
         }
 
-        //Select the 4 options
-        for(int i=0; i<4; i++) {
-            currentOpt[i] = (randNum.nextInt(199));
-            for(int j= i-1; j>=0;j--){
-                while(currentOpt[i]==currentOpt[j]){
-                    currentOpt[i] = (randNum.nextInt(199));
-                    j=i-1;
-                }
-
-            }
-        }
         //Select one of the numbers to be the winner
         winner = (randNum.nextInt(4));
+        currentRun = usedFlags;
+
+        /*
+        * Below we should add the nonusedFlags variable
+        * to see if the winner is there
+        * if it is, we need to code it so a new random number is selected
+        * ALSO, we should return to the intro Screen once all the countries have been guessed correctly
+        *
+        * */
+
+
+
+        currentOpt[winner] = (randNum.nextInt(199));
+        while (currentRun.contains(currentOpt[winner])) {
+            currentOpt[winner] = (randNum.nextInt(199));
+        }
+
+        currentRun.add(currentOpt[winner]);
+
+
+
+        //Select the 4 options
+        for(int i=0; i<4; i++) {
+            if(winner!=i) {
+                currentOpt[i] = (randNum.nextInt(199));
+                while (currentRun.contains(currentOpt[i])) {
+                    currentOpt[i] = (randNum.nextInt(199));
+                }
+
+                currentRun.add(currentOpt[i]);
+
+
+                /*
+                currentOpt[i] = (randNum.nextInt(199));
+                while(currentOpt[i]==currentOpt[winner]);
+                    currentOpt[i] = (randNum.nextInt(199));
+
+                for(int j= i-1; j>=0;j--){
+                    while(currentOpt[i]==currentOpt[winner]||currentOpt[i]==currentOpt[j]){
+                        currentOpt[i] = (randNum.nextInt(199));
+                        j=i-1;
+                    }
+
+                }
+
+                */
+            }
+        }
 
         newScreen();
 
     }
 
-    //New screen created based on determined values
+    //New screen created based on pre-determined values
     protected void newScreen(){
 
         locTask = new DownloadImage();
@@ -290,12 +340,6 @@ public class MainActivity extends AppCompatActivity {
                 } catch (ExecutionException e) {
                     e.printStackTrace();
                 }
-
-                int width = image.getWidth();
-                int height = image.getHeight();
-
-                Log.i("Width! WATWAT -", ""+width);
-                Log.i("Width! WATWAT -", ""+height);
 
 
                 image = Bitmap.createScaledBitmap(image, 810, 450, true);
@@ -321,6 +365,8 @@ public class MainActivity extends AppCompatActivity {
         bundle.putStringArray("Countries list URL", countriesDataURL);
         bundle.putStringArray("Countries list Names", countriesDataNames);
         bundle.putBoolean("Started",started);
+        bundle.putIntegerArrayList("Used Flags",usedFlags);
+        bundle.putIntegerArrayList("Current Run",currentRun);
 
     }
 
@@ -337,7 +383,9 @@ public class MainActivity extends AppCompatActivity {
             setContentView(R.layout.activity_main_lc);
 
 
-
+        //Flags that will still show up
+        usedFlags = new ArrayList<Integer>();
+        currentRun = new ArrayList<Integer>();
 
         //String that catches the result
         String result="";
@@ -378,16 +426,22 @@ public class MainActivity extends AppCompatActivity {
 
             res = (Integer) savedInstanceState.get("Choice");
 
+            currentRun = (ArrayList<Integer>) savedInstanceState.get("Current Run");
+
+
+            usedFlags = (ArrayList<Integer>) savedInstanceState.get("Used Flags");
+
             currentOpt = (int[]) savedInstanceState.get("Current Options");
 
             countriesDataURL = (String[]) savedInstanceState.get("Countries list URL");
             countriesDataNames = (String[]) savedInstanceState.get("Countries list Names");
 
+            //If game has been started beyond the 'intro' screen
             if(started){
-
                 for(int i = 0; i<4; i++)
                     selectors[i].animate().alpha(1).start();
 
+                //If the user has a previous Right or wrong
                 if(prevWin!=2000){
 
                     if(res==1)
@@ -419,9 +473,9 @@ public class MainActivity extends AppCompatActivity {
             countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
 
             //Adding the full URL to the Images
-            for(int i=0; i<countriesDataURL.length; i++ )
+            for(int i=0; i<countriesDataURL.length; i++ ) {
                 countriesDataURL[i] = "http://flags.fmcdn.net/data/flags/normal/" + countriesDataURL[i];
-
+            }
             //Overall counter
             counter = -1;
             score = counter;
@@ -435,7 +489,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        //previousFlags = new ArrayList<Integer>();
 
     }
 }
