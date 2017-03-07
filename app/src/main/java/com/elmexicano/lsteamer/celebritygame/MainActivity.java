@@ -29,20 +29,29 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-
+    //Checks if the game has started
     private boolean started;
-    private  int counter, score, winner, prevWin, res;
+
+    //Keeps the Counter, the score, current country that's the winner, past county that was the winner and which button was clicked by the user
+    private int counter, score, winner, prevWin, res;
+
+    //Array for the 4 Buttons
     private Button[] selectors;
+    //The 2 TextViews in the game
     private TextView resultTV, scoreTV;
+    //The image in the game
     private ImageView bandera;
 
+    //The String that includes the wikipedia link
     private String linkedText;
 
+    //The 4 numbers/countries that constitute the current clickable options
     private int[] currentOpt;
 
+    //Flags that have been correctly guessed before
     private ArrayList<Integer> usedFlags;
+    //Flags that have been correctly guessed before plus the options in this run
     private ArrayList<Integer> currentRun;
-
 
 
     DownloadImage locTask;
@@ -50,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     //Random number Class
     Random randNum;
 
+    //Names and URL
     String[] countriesDataNames;
     String[] countriesDataURL;
 
@@ -176,7 +186,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
     //Method that's called whenever the user presses a button
     //The logic of the game is in this method
     protected void countryFlag(View view){
@@ -299,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onSaveInstanceState(Bundle bundle){
         super.onSaveInstanceState(bundle);
-        //bundle.putIntegerArrayList("Previous",previousFlags);
+        //Variables that help build the app
         bundle.putInt("Winner",winner);
         bundle.putInt("Previous Winner", prevWin);
         bundle.putIntArray("Current Options",currentOpt);
@@ -365,23 +374,18 @@ public class MainActivity extends AppCompatActivity {
         bandera = (ImageView) findViewById(R.id.flagImage);
 
         if(savedInstanceState!=null){
-            started = (boolean) savedInstanceState.get("Started");
 
+            //Get data of the variables
+            started = (boolean) savedInstanceState.get("Started");
             winner = (Integer) savedInstanceState.get("Winner");
             prevWin = (Integer) savedInstanceState.get("Previous Winner");
             counter = (Integer) savedInstanceState.get("Total");
             score = (Integer) savedInstanceState.get("Score");
-
             res = (Integer) savedInstanceState.get("Choice");
-
             currentRun = (ArrayList<Integer>) savedInstanceState.get("Current Run");
-
-            linkedText = (String) savedInstanceState.get("Linked Text");
-
             usedFlags = (ArrayList<Integer>) savedInstanceState.get("Used Flags");
-
+            linkedText = (String) savedInstanceState.get("Linked Text");
             currentOpt = (int[]) savedInstanceState.get("Current Options");
-
             countriesDataURL = (String[]) savedInstanceState.get("Countries list URL");
             countriesDataNames = (String[]) savedInstanceState.get("Countries list Names");
 
@@ -403,10 +407,12 @@ public class MainActivity extends AppCompatActivity {
                         scoreTV.setText(Html.fromHtml(linkedText));
                         scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
                     }
-                    
+
                     resultTV.setText(score + " / " + counter);
 
                 }
+
+                //Fill the screen
                 newScreen();
             }
 
@@ -435,15 +441,10 @@ public class MainActivity extends AppCompatActivity {
             counter = -1;
             score = counter;
 
-
-
             //Saved instances of the 4 options shown
             currentOpt = new int[4];
 
         }
-
-
-
 
     }
 }
