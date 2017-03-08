@@ -73,6 +73,88 @@
 
     </TableLayout>
 
+    <RelativeLayout
+        android:id="@+id/winLay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/flagImage"
+        android:layout_centerHorizontal="true"
+        android:alpha="0">
+
+        <TextView
+            android:id="@+id/cong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:text="Good!"
+            android:textSize="35sp" />
+
+        <LinearLayout
+            android:id="@+id/sent"
+            android:layout_width="wrap_content"
+
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/cong"
+            android:layout_centerHorizontal="true">
+
+            <TextView
+                android:id="@+id/you_had"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="You have "
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/scorete"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/cong"
+                android:text="6"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/outof"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:layout_toRightOf="@+id/outof"
+                android:text=" correct tries out of "
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/totalte"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/scorete"
+                android:text="50"
+                android:textSize="20sp" />
+
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tryagain"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/sent"
+            android:layout_centerHorizontal="true"
+
+            android:text="Want to keep going?"
+            android:textSize="35sp" />
+
+
+    </RelativeLayout>
+
+
+
+
+
+
+
+
     <TextView
         android:id="@+id/result"
         android:layout_width="wrap_content"

@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.BufferedReader;
@@ -34,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Keeps the Counter, the score, current country that's the winner, past county that was the winner and which button was clicked by the user
     private int counter, score, winner, prevWin, res;
+    //It is to note, however, that prevWin ended up being a flag for when the game has been activated, but either no choice has been made, or there is a pause.
 
     //Array for the 4 Buttons
     private Button[] selectors;
@@ -41,6 +43,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView resultTV, scoreTV;
     //The image in the game
     private ImageView bandera;
+
+    //Win Screen
+    RelativeLayout winScreen;
 
     //The String that includes the wikipedia link
     private String linkedText;
@@ -101,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     //Inner class that retrieves the source code.
-    protected class DownloadTask extends AsyncTask<String, Void, String>{
+    public class DownloadTask extends AsyncTask<String, Void, String>{
 
         @Override
         protected String doInBackground(String... strings) {
@@ -155,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     //Method that receives a sourcecode and a Pattern to look for, and returns a String Array with the occurrences
-    protected String[] urlCleaner(String page,String pattern){
+    public String[] urlCleaner(String page,String pattern){
 
         int counter=0;
 
@@ -188,7 +193,7 @@ public class MainActivity extends AppCompatActivity {
 
     //Method that's called whenever the user presses a button
     //The logic of the game is in this method
-    protected void countryFlag(View view){
+    public void countryFlag(View view){
 
         //PREPPING THE SCREEN/LOGIC OF THE GAME
 
@@ -202,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
                 selectors[i].setClickable(true);
 
             }
+
             //Score and counter are no longer -1
             score++;
             counter++;
@@ -209,8 +215,9 @@ public class MainActivity extends AppCompatActivity {
             //'flag' for when you rotate the screen to know that the game has started, yet no option has been selected yet
             prevWin = 2000;
         }
+
         //Game started and options have been selected
-        else {
+        else if(started) {
             //See the tag of the Country the user has selected
             res = (Integer) view.getTag();
 
@@ -226,7 +233,7 @@ public class MainActivity extends AppCompatActivity {
                 usedFlags.add(currentOpt[winner]);
             }
             //If the previous answer was wrong
-            else{
+            else if(res==0){
 
                 linkedText =  "Wrong! That was "+ String.format("<a href=\"%s\">" + countriesDataNames[currentOpt[winner]]+ "</a> ", dynamicURL);
                 scoreTV.setText(Html.fromHtml(linkedText));
@@ -242,52 +249,74 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        if(started==false){
+            started=true;
+            prevWin=2500;
+            for(int i = 0; i<4; i++){
+                selectors[i].animate().alpha(1).start();
+                selectors[i].setClickable(true);
+            }
 
+            winScreen = (RelativeLayout) findViewById(R.id.winLay);
+            winScreen.animate().alpha(0).start();
+        }
+
+
+        if((counter==25||counter==50||counter==100||counter==200)&&prevWin!=2500){
+            started=false;
+            scoreScreen();
+        }
+
+
+        Log.i("SOME","-"+counter);
         //NEW SET OF DATA
 
-        //Select one of the numbers to be the winner
-        winner = (randNum.nextInt(4));
-        currentRun = usedFlags;
+        if (started){
+            //Select one of the numbers to be the winner
+            winner = (randNum.nextInt(4));
+            currentRun = usedFlags;
 
 
-        //If the winner exists before, select again
-        currentOpt[winner] = (randNum.nextInt(199));
-        while (currentRun.contains(currentOpt[winner])) {
+            //If the winner exists before, select again
             currentOpt[winner] = (randNum.nextInt(199));
-        }
-
-        //Add the winner to the 'banned for this run' list
-        currentRun.add(currentOpt[winner]);
-
-
-        //Download the image process
-        locTask = new DownloadImage();
-        Bitmap image=null;
-
-        try {
-            image = locTask.execute(countriesDataURL[currentOpt[winner]]).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-
-        //Selects the 4 options
-        for(int i=0; i<4; i++) {
-            if(winner!=i) {
-                currentOpt[i] = (randNum.nextInt(199));
-                while (currentRun.contains(currentOpt[i])) {
-                    currentOpt[i] = (randNum.nextInt(199));
-                }
-
-                currentRun.add(currentOpt[i]);
-
+            while (currentRun.contains(currentOpt[winner])) {
+                currentOpt[winner] = (randNum.nextInt(199));
             }
-        }
 
-        //Call the new method to fill the screen
-        newScreen(image);
+            //Add the winner to the 'banned for this run' list
+            currentRun.add(currentOpt[winner]);
+
+
+            //Download the image process
+            locTask = new DownloadImage();
+            Bitmap image=null;
+
+            try {
+                image = locTask.execute(countriesDataURL[currentOpt[winner]]).get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+
+            //Selects the 4 options
+            for(int i=0; i<4; i++) {
+                if(winner!=i) {
+                    currentOpt[i] = (randNum.nextInt(199));
+                    while (currentRun.contains(currentOpt[i])) {
+                        currentOpt[i] = (randNum.nextInt(199));
+                    }
+
+                    currentRun.add(currentOpt[i]);
+
+                }
+            }
+
+            //Call the new method to fill the screen
+            newScreen(image);
+
+        }
 
 
     }
@@ -307,6 +336,28 @@ public class MainActivity extends AppCompatActivity {
         bandera.setImageBitmap(image);
         selectors[winner].setTag(1);
 
+    }
+
+    //Score screen.
+    protected void scoreScreen(){
+
+        bandera.setImageResource(R.drawable.flagintro);
+        for(int i = 0; i<4; i++){
+            selectors[i].animate().alpha(0).start();
+            selectors[i].setClickable(false);
+
+        }
+
+        TextView scoret = (TextView) findViewById(R.id.scorete);
+        scoret.setText(""+score);
+        TextView totalt = (TextView) findViewById(R.id.totalte);
+        totalt.setText(""+counter);
+
+        selectors[3].animate().alpha(1).start();
+        selectors[3].setClickable(true);
+        selectors[3].setText("Do "+(counter*2)+" more!");
+        winScreen = (RelativeLayout) findViewById(R.id.winLay);
+        winScreen.animate().alpha(1).start();
     }
 
 
@@ -334,6 +385,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        winScreen = (RelativeLayout) findViewById(R.id.winLay);
+        //winScreen.animate().alpha(1).start();
 
         res=0;
 
@@ -401,8 +455,10 @@ public class MainActivity extends AppCompatActivity {
 
             //If game has been started beyond the 'intro' screen
             if(started){
-                for(int i = 0; i<4; i++)
+                for(int i = 0; i<4; i++) {
                     selectors[i].animate().alpha(1).start();
+                    selectors[i].setClickable(true);
+                }
 
                 //If the user has a previous Right or wrong
                 if(prevWin!=2000){
