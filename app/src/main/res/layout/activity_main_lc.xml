@@ -38,11 +38,118 @@
     </LinearLayout>
 
 
-    <LinearLayout
+
+
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal"
         android:layout_weight="2">
+
+
+        <RelativeLayout
+            android:id="@+id/winLay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:alpha="0">
+
+            <TextView
+                android:id="@+id/cong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:text="Good!"
+                android:textSize="20sp" />
+
+            <RelativeLayout
+                android:id="@+id/sent"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/cong"
+                android:layout_centerHorizontal="true">
+
+                <TextView
+                    android:id="@+id/you_had"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="You have "
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/scorete"
+                    android:layout_width="wrap_content"
+
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/you_had"
+                    android:text="6"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/outof"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:layout_toRightOf="@+id/scorete"
+                    android:text=" correct tries "
+                    android:textSize="15sp" />
+
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/sent2"
+                android:layout_width="wrap_content"
+
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/sent"
+                android:layout_centerHorizontal="true">
+
+
+                <TextView
+                    android:id="@+id/outof2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="out of "
+                    android:textSize="15sp" />
+                <TextView
+                    android:id="@+id/totalte"
+                    android:layout_width="wrap_content"
+
+                    android:layout_height="wrap_content"
+                    android:layout_toRightOf="@+id/outof2"
+                    android:text="50"
+                    android:textSize="15sp" />
+
+
+            </RelativeLayout>
+
+
+
+            <TextView
+                android:id="@+id/tryagain"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/sent2"
+                android:layout_centerHorizontal="true"
+
+                android:text="Want to keep going?"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/tryagain2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/tryagain"
+                android:layout_centerHorizontal="true"
+
+                android:text=""
+                android:textSize="20sp" />
+
+
+        </RelativeLayout>
 
         <TableLayout
             android:orientation="vertical"
@@ -127,6 +234,6 @@
 
 
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>

@@ -143,7 +143,17 @@
             android:layout_centerHorizontal="true"
 
             android:text="Want to keep going?"
-            android:textSize="35sp" />
+            android:textSize="25sp" />
+
+        <TextView
+            android:id="@+id/tryagain2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tryagain"
+            android:layout_centerHorizontal="true"
+
+            android:text=""
+            android:textSize="25sp" />
 
 
     </RelativeLayout>

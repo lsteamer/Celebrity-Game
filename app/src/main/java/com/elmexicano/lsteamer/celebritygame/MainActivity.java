@@ -197,7 +197,7 @@ public class MainActivity extends AppCompatActivity {
 
         //PREPPING THE SCREEN/LOGIC OF THE GAME
 
-        //Game started but no option has been selected, make the rest of the buttons appear and give a choice
+        //Game started but no option has been selected, counter has not started, make the rest of the buttons appear and give a choice
         if(score==-1){
             //It has started
             started = true;
@@ -249,28 +249,31 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        //If we're coming out of a score screen.
         if(started==false){
+            //Start the game again
             started=true;
             prevWin=2500;
+            //activate the buttons
             for(int i = 0; i<4; i++){
                 selectors[i].animate().alpha(1).start();
                 selectors[i].setClickable(true);
             }
 
+            //Hide the score screen
             winScreen = (RelativeLayout) findViewById(R.id.winLay);
             winScreen.animate().alpha(0).start();
         }
 
-
+        //If the counter reaches a certain point. Pause the game and call the scoreScreen
+        //The stops in the game are 25, 50, 100 & 200
         if((counter==25||counter==50||counter==100||counter==200)&&prevWin!=2500){
             started=false;
             scoreScreen();
         }
 
 
-        Log.i("SOME","-"+counter);
-        //NEW SET OF DATA
-
+        //If the game is not paused
         if (started){
             //Select one of the numbers to be the winner
             winner = (randNum.nextInt(4));
@@ -321,43 +324,113 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //Method that creates the screen.
+    //Method that creates the Game screen.
     protected void newScreen(Bitmap image){
 
-        locTask = new DownloadImage();
+        //Buttons are set
         for(int i=0; i<4; i++){
 
             selectors[i].setText(countriesDataNames[currentOpt[i]]);
             selectors[i].setTag(0);
 
         }
+        //Image arranged
         image = Bitmap.createScaledBitmap(image, 810, 450, true);
-
         bandera.setImageBitmap(image);
+        //Set the winner tag
         selectors[winner].setTag(1);
 
     }
+    /*
+     * newscreen and scoreScreen could be the same method.
+     * Only difference is if started is true or not, the bitmap could be null if false
+     * I'll fix that later on. Would simplify the app, make it more readable and manageable
+     */
 
-    //Score screen.
+
+    //Method that creates the score screen.
     protected void scoreScreen(){
 
-        bandera.setImageResource(R.drawable.flagintro);
+
+        //Manipulating the congratulation screens
+        TextView congr = (TextView) findViewById(R.id.cong);
+        TextView tryAgain = (TextView) findViewById(R.id.tryagain);
+
+
+        //Show the Score Screen
+        winScreen = (RelativeLayout) findViewById(R.id.winLay);
+        winScreen.animate().alpha(1).start();
+
+
+        //Hide all the buttons
         for(int i = 0; i<4; i++){
             selectors[i].animate().alpha(0).start();
             selectors[i].setClickable(false);
 
         }
 
-        TextView scoret = (TextView) findViewById(R.id.scorete);
-        scoret.setText(""+score);
-        TextView totalt = (TextView) findViewById(R.id.totalte);
-        totalt.setText(""+counter);
+        //If you have a perfect score after the 199 flags
+        if(score==199){
+            bandera.setImageResource(R.drawable.damson);
+            TextView tryAgain2 = (TextView) findViewById(R.id.tryagain2);
+            congr.setText("Well I'm impressed");
+            tryAgain.setText("You're good at this");;
+            tryAgain2.setText("Maybe a bit too good");
 
-        selectors[3].animate().alpha(1).start();
-        selectors[3].setClickable(true);
-        selectors[3].setText("Do "+(counter*2)+" more!");
-        winScreen = (RelativeLayout) findViewById(R.id.winLay);
-        winScreen.animate().alpha(1).start();
+        }
+        else{
+
+            //Congratulation text
+            congr = (TextView) findViewById(R.id.cong);
+
+            if(score==counter)
+                congr.setText("Perfect score!");
+            else if(score > (counter*(90.0f/100.0f)))
+                congr.setText("Impressive");
+            else if(score > (counter*(80.0f/100.0f)))
+                congr.setText("Great");
+            else if(score > (counter*(70.0f/100.0f)))
+                congr.setText("Very Good");
+            else if(score > (counter*(60.0f/100.0f)))
+                congr.setText("Good");
+            else if(score > (counter*(50.0f/100.0f)))
+                congr.setText("Alright");
+            else if(score > (counter*(40.0f/100.0f)))
+                congr.setText("You need to get better");
+            else if(score > (counter*(30.0f/100.0f)))
+                congr.setText("At least you're trying");
+            else
+                congr.setText("You're \"good\" at this");
+
+            //Score TextView
+            TextView scoret = (TextView) findViewById(R.id.scorete);
+            scoret.setText(""+score);
+            //Total TextView
+            TextView totalt = (TextView) findViewById(R.id.totalte);
+            totalt.setText(""+counter);
+
+            //Hide the result
+            resultTV.setText("");
+            //Shown the info (Wikipedia Link) for the previous one
+            scoreTV.setText(Html.fromHtml(linkedText));
+            scoreTV.setMovementMethod(LinkMovementMethod.getInstance());
+            //Set the App Banner
+            bandera.setImageResource(R.drawable.flagintro);
+
+            //No more buttons to show
+            if(counter==200){
+                tryAgain = (TextView) findViewById(R.id.tryagain);
+                tryAgain.setText("200 turns? You're committed!");
+            }
+            //Offer the "Keep going"
+            else{
+                selectors[3].animate().alpha(1).start();
+                selectors[3].setClickable(true);
+                selectors[3].setText("Do "+(counter*2)+" more!");
+
+            }
+
+        }
     }
 
 
@@ -389,7 +462,11 @@ public class MainActivity extends AppCompatActivity {
         winScreen = (RelativeLayout) findViewById(R.id.winLay);
         //winScreen.animate().alpha(1).start();
 
+        //nothing picked
         res=0;
+
+        //Intro screen
+        score = -1;
 
         //If the screen is rotated, choose a different layout
         if(Configuration.ORIENTATION_PORTRAIT==this.getResources().getConfiguration().orientation)
@@ -475,9 +552,7 @@ public class MainActivity extends AppCompatActivity {
                     }
 
                     resultTV.setText(score + " / " + counter);
-
                 }
-
 
                 //Download the image process
                 locTask = new DownloadImage();
@@ -491,39 +566,43 @@ public class MainActivity extends AppCompatActivity {
                     e.printStackTrace();
                 }
 
-
-
                 //Fill the screen
                 newScreen(image);
             }
+            else{
 
+                scoreScreen();
+            }
 
         }
         else{
-            //Call the Class that will download the source code
-            try {
-                result = task.execute("http://flagpedia.net/index").get();
+            if(score==-1){
+                //Call the Class that will download the source code
+                try {
+                    result = task.execute("http://flagpedia.net/index").get();
 
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                }
+
+                //Calling the method that 'cleans' the results
+                countriesDataNames = urlCleaner(result,"<img alt=\"Flag of (.*?)\"");
+                countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
+
+                //Adding the full URL to the Images
+                for(int i=0; i<countriesDataURL.length; i++ ) {
+                    countriesDataURL[i] = "http://flags.fmcdn.net/data/flags/normal/" + countriesDataURL[i];
+                }
+                //Overall counter
+                counter = -1;
+                score = counter;
+
+                //Saved instances of the 4 options shown
+                currentOpt = new int[4];
+
             }
-
-            //Calling the method that 'cleans' the results
-            countriesDataNames = urlCleaner(result,"<img alt=\"Flag of (.*?)\"");
-            countriesDataURL = urlCleaner(result,"/mini/(.*?)\"");
-
-            //Adding the full URL to the Images
-            for(int i=0; i<countriesDataURL.length; i++ ) {
-                countriesDataURL[i] = "http://flags.fmcdn.net/data/flags/normal/" + countriesDataURL[i];
-            }
-            //Overall counter
-            counter = -1;
-            score = counter;
-
-            //Saved instances of the 4 options shown
-            currentOpt = new int[4];
 
         }
 
